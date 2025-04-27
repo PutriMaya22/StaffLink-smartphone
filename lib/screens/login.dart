@@ -13,7 +13,7 @@ class LoginPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset('assets/login_img.png', height: 180),
+              Image.asset('assets/logo.png', height: 180),
               SizedBox(height: 40),
               Text("Log-in", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               SizedBox(height: 20),

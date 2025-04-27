@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/login.dart';
+import 'screens/welcome.dart'; 
 
 void main() {
   runApp(MyApp());
@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'StaffLink',
       debugShowCheckedModeBanner: false,
-      home: LoginPage(),
+      home: WelcomeScreen(), 
     );
   }
 }

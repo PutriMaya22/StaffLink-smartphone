@@ -10,7 +10,7 @@ class ForgotPasswordPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset('assets/forgot_img.png', height: 180),
+              Image.asset('assets/logo.png', height: 180),
               SizedBox(height: 20),
               Text("Forgot password", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               SizedBox(height: 20),
