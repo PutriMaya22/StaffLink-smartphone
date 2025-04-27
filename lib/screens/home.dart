@@ -1,7 +1,28 @@
 import 'package:flutter/material.dart';
+import 'setting_page.dart';
 
-class WalletScreen extends StatelessWidget {
-  const WalletScreen({super.key});
+class WalletScreen extends StatefulWidget {
+  const WalletScreen({Key? key}) : super(key: key);
+
+  @override
+  State<WalletScreen> createState() => _WalletScreenState();
+}
+
+class _WalletScreenState extends State<WalletScreen> {
+  int _currentIndex = 0;
+
+  void _onTabTapped(int index) {
+    if (index == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => SettingsPage()),
+      );
+    } else {
+      setState(() {
+        _currentIndex = index;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -10,7 +31,8 @@ class WalletScreen extends StatelessWidget {
       bottomNavigationBar: BottomNavigationBar(
         selectedItemColor: Colors.indigo,
         unselectedItemColor: Colors.indigo.shade200,
-        currentIndex: 0,
+        currentIndex: _currentIndex,
+        onTap: _onTabTapped,
         showSelectedLabels: false,
         showUnselectedLabels: false,
         type: BottomNavigationBarType.fixed,
@@ -35,13 +57,16 @@ class WalletScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text("Hi Tino", style: TextStyle(color: Colors.grey[700])),
-                      const Text("Welcome back", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18))
+                      const Text(
+                        "Welcome back",
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                      ),
                     ],
                   ),
                   CircleAvatar(
                     backgroundColor: Colors.grey[300],
-                    child: const Icon(Icons.notifications_none, color: Color.fromARGB(255, 14, 1, 244)),
-                  )
+                    child: const Icon(Icons.notifications_none, color: Color(0xFF0E01F4)),
+                  ),
                 ],
               ),
               const SizedBox(height: 20),
@@ -57,7 +82,10 @@ class WalletScreen extends StatelessWidget {
               ),
               const SizedBox(height: 30),
               // Transactions
-              const Text("Transactions", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              const Text(
+                "Transactions",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: const [
@@ -100,7 +128,7 @@ class WalletScreen extends StatelessWidget {
               Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
               Text(time, style: const TextStyle(color: Colors.grey)),
             ],
-          )
+          ),
         ],
       ),
     );
