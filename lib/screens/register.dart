@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class SignUpPage extends StatelessWidget {
+  const SignUpPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,11 +37,11 @@ class SignUpPage extends StatelessWidget {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {},
-                child: Text("Sign up"),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF001F3F),
                   minimumSize: Size(double.infinity, 45),
                 ),
+                child: Text("Sign up"),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context),

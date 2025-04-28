@@ -4,6 +4,8 @@ import 'forgot_password.dart';
 import 'home.dart'; // Import halaman home
 
 class LoginPage extends StatelessWidget {
+  const LoginPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -13,8 +15,13 @@ class LoginPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset('assets/logo.png', height: 180),
-              SizedBox(height: 40),
+              Image.asset(
+                    'assets/logo.png',
+                    height: 250,
+                    width: 250,
+                    fit: BoxFit.contain, // pilih salah satu opsi fit
+                  ),
+              // SizedBox(height: 10),
               Text("Log-in", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               SizedBox(height: 20),
               TextField(
@@ -43,11 +50,11 @@ class LoginPage extends StatelessWidget {
                   MaterialPageRoute(builder: (context) => WalletScreen()),
                 );
               },
-                       child: Text("Login"),
                                 style: ElevatedButton.styleFrom(
                     minimumSize: Size(double.infinity, 45),
                     backgroundColor: Color(0xFF001F3F), // Warna navy
                   ),
+                       child: Text("Login"),
                 ),
               SizedBox(height: 10),
               TextButton(

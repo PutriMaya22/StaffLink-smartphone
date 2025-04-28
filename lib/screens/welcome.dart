@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'login.dart'; // Impor halaman login
 
 class WelcomeScreen extends StatefulWidget {
+  const WelcomeScreen({super.key});
+
   @override
   _WelcomeScreenState createState() => _WelcomeScreenState();
 }
@@ -85,6 +87,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           Image.asset(
                             onboardingData[index]['image']!,
                             height: 250,
+                            width: 250,
+                            fit: BoxFit.contain, // Pilih salah satu opsi di bawah
                           ),
                           SizedBox(height: 30),
                           Text(
