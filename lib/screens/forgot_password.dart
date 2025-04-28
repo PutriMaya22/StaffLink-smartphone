@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class ForgotPasswordPage extends StatelessWidget {
+  const ForgotPasswordPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,11 +22,11 @@ class ForgotPasswordPage extends StatelessWidget {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {},
-                child: Text("Submit"),
                 style: ElevatedButton.styleFrom(
                   minimumSize: Size(double.infinity, 45),
                   backgroundColor: Color(0xFF001F3F),
                 ),
+                child: Text("Submit"),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context),

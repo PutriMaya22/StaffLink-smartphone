@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'setting_page.dart';
 
 class WalletScreen extends StatefulWidget {
-  const WalletScreen({Key? key}) : super(key: key);
+  const WalletScreen({super.key});
 
   @override
   State<WalletScreen> createState() => _WalletScreenState();
@@ -107,6 +107,7 @@ class _WalletScreenState extends State<WalletScreen> {
   Widget _buildActionButton(IconData icon, Color color) {
     return CircleAvatar(
       radius: 25,
+      // ignore: deprecated_member_use
       backgroundColor: color.withOpacity(0.2),
       child: Icon(icon, color: color),
     );
