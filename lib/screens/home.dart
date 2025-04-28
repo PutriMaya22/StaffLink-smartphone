@@ -33,8 +33,6 @@ class _WalletScreenState extends State<WalletScreen> {
         unselectedItemColor: Colors.indigo.shade200,
         currentIndex: _currentIndex,
         onTap: _onTabTapped,
-        currentIndex: _currentIndex,
-        onTap: _onTabTapped,
         showSelectedLabels: false,
         showUnselectedLabels: false,
         type: BottomNavigationBarType.fixed,
@@ -63,16 +61,10 @@ class _WalletScreenState extends State<WalletScreen> {
                         "Welcome back",
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                       ),
-                      const Text(
-                        "Welcome back",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                      ),
                     ],
                   ),
                   CircleAvatar(
                     backgroundColor: Colors.grey[300],
-                    child: const Icon(Icons.notifications_none, color: Color(0xFF0E01F4)),
-                  ),
                     child: const Icon(Icons.notifications_none, color: Color(0xFF0E01F4)),
                   ),
                 ],
@@ -90,10 +82,6 @@ class _WalletScreenState extends State<WalletScreen> {
               ),
               const SizedBox(height: 30),
               // Transactions
-              const Text(
-                "Transactions",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
               const Text(
                 "Transactions",
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
@@ -141,7 +129,6 @@ class _WalletScreenState extends State<WalletScreen> {
               Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
               Text(time, style: const TextStyle(color: Colors.grey)),
             ],
-          ),
           ),
         ],
       ),
