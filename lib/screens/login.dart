@@ -25,7 +25,10 @@ class LoginPage extends StatelessWidget {
               Text("Log-in", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               SizedBox(height: 20),
               TextField(
-                decoration: InputDecoration(labelText: "Email", hintText: "Your email id"),
+                decoration: InputDecoration(
+                  labelText: "Email",
+                  hintText: "Your email id",
+                ),
               ),
               TextField(
                 obscureText: true,
@@ -38,8 +41,11 @@ class LoginPage extends StatelessWidget {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () => Navigator.push(
-                      context, MaterialPageRoute(builder: (_) => ForgotPasswordPage())),
+                  onPressed:
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => ForgotPasswordPage()),
+                      ),
                   child: Text("Forget password?"),
                 ),
               ),
@@ -58,8 +64,11 @@ class LoginPage extends StatelessWidget {
                 ),
               SizedBox(height: 10),
               TextButton(
-                onPressed: () => Navigator.push(
-                    context, MaterialPageRoute(builder: (_) => SignUpPage())),
+                onPressed:
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => SignUpPage()),
+                    ),
                 child: Text("Don’t have an account? Sign-up"),
               ),
               SizedBox(height: 10),
@@ -67,10 +76,16 @@ class LoginPage extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  IconButton(onPressed: () {}, icon: Icon(Icons.mail, color: Colors.red)),
-                  IconButton(onPressed: () {}, icon: Icon(Icons.facebook, color: Colors.blue)),
+                  IconButton(
+                    onPressed: () {},
+                    icon: Icon(Icons.mail, color: Colors.red),
+                  ),
+                  IconButton(
+                    onPressed: () {},
+                    icon: Icon(Icons.facebook, color: Colors.blue),
+                  ),
                 ],
-              )
+              ),
             ],
           ),
         ),

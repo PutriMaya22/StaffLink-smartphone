@@ -77,7 +77,7 @@ class _WalletScreenState extends State<WalletScreen> {
                   _buildActionButton(Icons.login, Colors.blue),
                   _buildActionButton(Icons.logout, Colors.orange),
                   _buildActionButton(Icons.location_on, Colors.green),
-                  _buildActionButton(Icons.access_time, Colors.purple),
+                  // _buildActionButton(Icons.access_time, Colors.purple),
                 ],
               ),
               const SizedBox(height: 30),
@@ -94,9 +94,24 @@ class _WalletScreenState extends State<WalletScreen> {
                 ],
               ),
               const SizedBox(height: 20),
-              _buildTransaction("Collage Free", "4:56 PM", Icons.home, Colors.red),
-              _buildTransaction("Alec Koder", "5:20 PM", Icons.person, Colors.purple),
-              _buildTransaction("Tino Well", "7:21 PM", Icons.person, Colors.purple),
+              _buildTransaction(
+                "Collage Free",
+                "4:56 PM",
+                Icons.home,
+                Colors.red,
+              ),
+              _buildTransaction(
+                "Alec Koder",
+                "5:20 PM",
+                Icons.person,
+                Colors.purple,
+              ),
+              _buildTransaction(
+                "Tino Well",
+                "7:21 PM",
+                Icons.person,
+                Colors.purple,
+              ),
             ],
           ),
         ),
@@ -113,7 +128,12 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  Widget _buildTransaction(String name, String time, IconData icon, Color iconColor) {
+  Widget _buildTransaction(
+    String name,
+    String time,
+    IconData icon,
+    Color iconColor,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
@@ -129,6 +149,7 @@ class _WalletScreenState extends State<WalletScreen> {
               Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
               Text(time, style: const TextStyle(color: Colors.grey)),
             ],
+          ),
           ),
         ],
       ),
