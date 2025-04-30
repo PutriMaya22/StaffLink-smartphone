@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'setting_page.dart';
 
-class WalletScreen extends StatefulWidget {
-  const WalletScreen({super.key});
+class EmployeeStafflink extends StatefulWidget {
+  const EmployeeStafflink({super.key});
 
   @override
-  State<WalletScreen> createState() => _WalletScreenState();
+  State<EmployeeStafflink> createState() => _EmployeeStafflinkState();
 }
 
-class _WalletScreenState extends State<WalletScreen> {
+class _EmployeeStafflinkState extends State<EmployeeStafflink> {
   int _currentIndex = 0;
 
   void _onTabTapped(int index) {
     if (index == 3) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => SettingsPage()),
+        MaterialPageRoute(builder: (_) => const SettingsPage()),
       );
     } else {
       setState(() {
@@ -56,17 +56,35 @@ class _WalletScreenState extends State<WalletScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Hi Tino", style: TextStyle(color: Colors.grey[700])),
+                      Text(
+                        "Hi Tino",
+                        style: TextStyle(color: Colors.grey[700]),
+                      ),
                       const Text(
                         "Welcome back",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
                       ),
+                      // Text(
+                      //   "Hi Tino",
+                      //   style: TextStyle(color: Colors.grey[700]),
+                      // ),
+                      // const Text(
+                      //   "Welcome back",
+                      //   style: TextStyle(
+                      //     fontWeight: FontWeight.bold,
+                      //     fontSize: 18,
+                      //   ),
+                      // ),
                     ],
                   ),
-                  CircleAvatar(
-                    backgroundColor: Colors.grey[300],
-                    child: const Icon(Icons.notifications_none, color: Color(0xFF0E01F4)),
-                  ),
+                  // CircleAvatar(
+                  //   backgroundColor: Colors.grey[300],
+                  //   child: const Icon(Icons.notifications_none, 
+                  //       color: Color.fromARGB(255, 14, 1, 244)),
+                  // )
                 ],
               ),
               const SizedBox(height: 20),
@@ -77,11 +95,14 @@ class _WalletScreenState extends State<WalletScreen> {
                   _buildActionButton(Icons.login, Colors.blue),
                   _buildActionButton(Icons.logout, Colors.orange),
                   _buildActionButton(Icons.location_on, Colors.green),
-                  _buildActionButton(Icons.access_time, Colors.purple),
                 ],
               ),
               const SizedBox(height: 30),
               // Transactions
+              const Text(
+                "Riwayat",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
               const Text(
                 "Transactions",
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
@@ -94,9 +115,42 @@ class _WalletScreenState extends State<WalletScreen> {
                 ],
               ),
               const SizedBox(height: 20),
-              _buildTransaction("Collage Free", "4:56 PM", Icons.home, Colors.red),
-              _buildTransaction("Alec Koder", "5:20 PM", Icons.person, Colors.purple),
-              _buildTransaction("Tino Well", "7:21 PM", Icons.person, Colors.purple),
+              _buildTransaction(
+                "Collage Free",
+                "4:56 PM",
+                Icons.home,
+                Colors.red,
+              ),
+              _buildTransaction(
+                "Alec Koder",
+                "5:20 PM",
+                Icons.person,
+                Colors.purple,
+              ),
+              _buildTransaction(
+                "Tino Well",
+                "7:21 PM",
+                Icons.person,
+                Colors.purple,
+              ),
+              _buildTransaction(
+                "Collage Free",
+                "4:56 PM",
+                Icons.home,
+                Colors.red,
+              ),
+              _buildTransaction(
+                "Alec Koder",
+                "5:20 PM",
+                Icons.person,
+                Colors.purple,
+              ),
+              _buildTransaction(
+                "Tino Well",
+                "7:21 PM",
+                Icons.person,
+                Colors.purple,
+              ),
             ],
           ),
         ),
@@ -107,13 +161,17 @@ class _WalletScreenState extends State<WalletScreen> {
   Widget _buildActionButton(IconData icon, Color color) {
     return CircleAvatar(
       radius: 25,
-      // ignore: deprecated_member_use
       backgroundColor: color.withOpacity(0.2),
       child: Icon(icon, color: color),
     );
   }
 
-  Widget _buildTransaction(String name, String time, IconData icon, Color iconColor) {
+  Widget _buildTransaction(
+    String name,
+    String time,
+    IconData icon,
+    Color iconColor,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
