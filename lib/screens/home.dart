@@ -56,17 +56,26 @@ class _WalletScreenState extends State<WalletScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Hi Tino", style: TextStyle(color: Colors.grey[700])),
+                      Text(
+                        "Hi Tino",
+                        style: TextStyle(color: Colors.grey[700]),
+                      ),
                       const Text(
                         "Welcome back",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
                       ),
                     ],
                   ),
-                  CircleAvatar(
-                    backgroundColor: Colors.grey[300],
-                    child: const Icon(Icons.notifications_none, color: Color(0xFF0E01F4)),
-                  ),
+                  // CircleAvatar(
+                  //   backgroundColor: Colors.grey[300],
+                  //   // child: const Icon(
+                  //   //   Icons.notifications_none,
+                  //   //   color: Color(0xFF0E01F4),
+                  //   // ),
+                  // ),
                 ],
               ),
               const SizedBox(height: 20),
@@ -149,7 +158,6 @@ class _WalletScreenState extends State<WalletScreen> {
               Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
               Text(time, style: const TextStyle(color: Colors.grey)),
             ],
-          ),
           ),
         ],
       ),
