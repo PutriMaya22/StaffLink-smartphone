@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'register.dart';
 import 'forgot_password.dart';
-import 'home.dart';
-// import 'employee_stafflink.dart'; // Import halaman EmployeeStafflink
+import 'home.dart'; // pastikan ini berisi TaskManagerScreen
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -15,10 +14,8 @@ class LoginPage extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: SingleChildScrollView(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Image.asset('assets/login_img.png', height: 180),
-                // const SizedBox(height: 20),
+                const SizedBox(height: 60),
                 Image.asset(
                   'assets/logo.png',
                   height: 150,
@@ -31,7 +28,7 @@ class LoginPage extends StatelessWidget {
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
-                TextField(
+                const TextField(
                   decoration: InputDecoration(
                     labelText: "Email",
                     hintText: "Your email id",
@@ -39,7 +36,7 @@ class LoginPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 15),
-                TextField(
+                const TextField(
                   obscureText: true,
                   decoration: InputDecoration(
                     labelText: "Password",
@@ -68,13 +65,15 @@ class LoginPage extends StatelessWidget {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const EmployeeStafflink(),
+                        builder:
+                            (context) =>
+                                const TaskManagerScreen(), // pastikan ini ada di home.dart
                       ),
                     );
                   },
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 45),
-                    backgroundColor: const Color(0xFF001F3F), // Warna navy
+                    backgroundColor: const Color(0xFF001F3F),
                   ),
                   child: const Text("Login"),
                 ),
