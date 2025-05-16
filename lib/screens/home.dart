@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'HousekeepingReportForm.dart';
 
 class TaskManagerScreen extends StatelessWidget {
   const TaskManagerScreen({super.key});
@@ -7,7 +8,17 @@ class TaskManagerScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
+
       bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 0,
+        onTap: (index) {
+          if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => HousekeepingReportForm()),
+            );
+          }
+        },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Form'),
@@ -21,6 +32,7 @@ class TaskManagerScreen extends StatelessWidget {
         unselectedItemColor: Colors.grey,
         showUnselectedLabels: true,
       ),
+
       body: SafeArea(
         child: Column(
           children: [
