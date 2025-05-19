@@ -65,7 +65,7 @@ class TaskManagerScreen extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Icon(Icons.menu, color: Colors.white),
+                  // Icon(Icons.menu, color: Colors.white),
                 ],
               ),
             ),
@@ -76,7 +76,7 @@ class TaskManagerScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF5B5FEF),
+                      color: const Color.fromARGB(255, 91, 158, 239),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(

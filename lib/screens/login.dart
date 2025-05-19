@@ -87,21 +87,21 @@ class LoginPage extends StatelessWidget {
                   child: const Text("Don't have an account? Sign-up"),
                 ),
                 const SizedBox(height: 15),
-                const Text("Or login with"),
-                const SizedBox(height: 15),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.mail, color: Colors.red),
-                    ),
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.facebook, color: Colors.blue),
-                    ),
-                  ],
-                ),
+                // const Text("Or login with"),
+                // const SizedBox(height: 15),
+                // Row(
+                //   mainAxisAlignment: MainAxisAlignment.center,
+                //   children: [
+                //     IconButton(
+                //       onPressed: () {},
+                //       icon: const Icon(Icons.mail, color: Colors.red),
+                //     ),
+                //     IconButton(
+                //       onPressed: () {},
+                //       icon: const Icon(Icons.facebook, color: Colors.blue),
+                //     ),
+                //   ],
+                // ),
               ],
             ),
           ),
