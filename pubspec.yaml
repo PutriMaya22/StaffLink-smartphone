@@ -11,10 +11,11 @@ dependencies:
   flutter:
     sdk: flutter
   get: ^4.7.2
+  shared_preferences: ^2.2.2
   cupertino_icons: ^1.0.8
-  http: ^1.4.0
   image_picker: ^1.1.2
   intl: ^0.20.2
+  http: ^1.4.0
   file_picker: ^10.1.9
   flutter_web_plugins:
     sdk: flutter
