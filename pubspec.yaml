@@ -11,14 +11,14 @@ dependencies:
   flutter:
     sdk: flutter
   get: ^4.7.2
-  shared_preferences: ^2.2.2
+  shared_preferences: ^2.2.2 # Atau ^2.1.1, pilih versi yang ingin Anda gunakan
   cupertino_icons: ^1.0.8
-  image_picker: ^1.1.2
-  intl: ^0.20.2
-  http: ^1.4.0
-  file_picker: ^10.1.9
-  flutter_web_plugins:
-    sdk: flutter
+
+  image_picker: ^0.8.7+4
+  file_picker: ^6.1.1
+  intl: ^0.18.1
+  http: ^0.13.6
+  sp_util: ^2.0.3
 
 dev_dependencies:
   flutter_test:
