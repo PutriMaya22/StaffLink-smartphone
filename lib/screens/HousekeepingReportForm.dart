@@ -12,11 +12,12 @@ class HousekeepingReportForm extends StatefulWidget {
   const HousekeepingReportForm({super.key});
 
   @override
-  _HousekeepingReportForm createState() => _HousekeepingReportForm();
+  _HousekeepingReportFormState createState() => _HousekeepingReportFormState();
 }
 
-class _HousekeepingReportForm extends State<HousekeepingReportForm> {
+class _HousekeepingReportFormState extends State<HousekeepingReportForm> {
   final _formKey = GlobalKey<FormState>();
+  final ImagePicker _picker = ImagePicker();
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
@@ -27,6 +28,7 @@ class _HousekeepingReportForm extends State<HousekeepingReportForm> {
   String? selectedDepartemen;
   String? selectedShift;
   final List<Uint8List?> dokumenWeb = List.filled(5, null);
+  final List<File?> dokumen = List.filled(5, null); // Tambahkan untuk non-web
 
   final List<String> departemenList = [
     "Sales & Marketing",
@@ -54,34 +56,86 @@ class _HousekeepingReportForm extends State<HousekeepingReportForm> {
       lastDate: DateTime(2100),
     );
     if (picked != null) {
-      _dateController.text = DateFormat('yyyy-MM-dd').format(picked);
-    }
-  }
-
-  void _pickImage(int index) async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.image,
-      withData: true,
-    );
-    if (result != null && result.files.single.bytes != null) {
       setState(() {
-        dokumenWeb[index] = result.files.single.bytes!;
+        _dateController.text = DateFormat('yyyy-MM-dd').format(picked);
       });
     }
   }
 
-  void _submitForm() {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _pickImage(int index) async {
+    if (kIsWeb) {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+        withData: true,
+      );
+      if (result != null && result.files.single.bytes != null) {
+        setState(() {
+          dokumenWeb[index] = result.files.single.bytes!;
+          dokumen[index] = null; // Reset file untuk web
+        });
+      }
+    } else {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() {
+          dokumen[index] = File(image.path);
+          dokumenWeb[index] = null; // Reset bytes untuk non-web
+        });
+      }
+    }
+  }
 
-    bool allPhotosFilled = dokumenWeb.every((img) => img != null);
-    if (!allPhotosFilled) {
-      _showMessage('Semua foto dokumentasi wajib diisi');
-      return;
+  Future<void> submitReport() async {
+    if (!_formKey.currentState!.validate()) return;
+    _formKey.currentState!.save();
+
+    final url = Uri.parse('http://localhost:8000/api/report');
+    var request = http.MultipartRequest('POST', url);
+
+    request.fields['email'] = _emailController.text;
+    request.fields['tanggal'] = _dateController.text;
+    request.fields['nama'] = _namaController.text;
+    request.fields['departemen'] = selectedDepartemen ?? '';
+    request.fields['shift'] = selectedShift ?? '';
+    request.fields['jam_kerja'] = _jamKerjaController.text;
+    request.fields['pelayanan'] = _pelayananController.text;
+
+    for (int i = 0; i < 5; i++) {
+      if (kIsWeb && dokumenWeb[i] != null) {
+        final filename = 'web_photo_${i + 1}.jpg';
+        request.files.add(http.MultipartFile.fromBytes(
+          'dokumentasi_${i + 1}',
+          dokumenWeb[i]!,
+          filename: filename,
+        ));
+      } else if (!kIsWeb && dokumen[i] != null) {
+        final filename = dokumen[i]!.path.split('/').last;
+        request.files.add(await http.MultipartFile.fromPath(
+          'dokumentasi_${i + 1}',
+          dokumen[i]!.path,
+        ));
+      }
     }
 
-    _showMessage('Submit Berhasil');
-    _formKey.currentState!.reset();
+    try {
+      var response = await request.send();
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _showMessage('Laporan Berhasil Dikirim');
+        _resetForm();
+      } else {
+        String respStr = await response.stream.bytesToString();
+        _showMessage('Gagal: $respStr');
+      }
+    } catch (e) {
+      _showMessage('Error: $e');
+    }
+  }
+
+  void _resetForm() {
+    _formKey.currentState?.reset();
+    _emailController.clear();
     _dateController.clear();
+    _namaController.clear();
     _jamKerjaController.clear();
     _pelayananController.clear();
     setState(() {
@@ -89,6 +143,7 @@ class _HousekeepingReportForm extends State<HousekeepingReportForm> {
       selectedShift = null;
       for (int i = 0; i < dokumenWeb.length; i++) {
         dokumenWeb[i] = null;
+        dokumen[i] = null;
       }
     });
   }
@@ -97,7 +152,7 @@ class _HousekeepingReportForm extends State<HousekeepingReportForm> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         backgroundColor: Colors.blue.shade600,
-        content: Text(message, style: TextStyle(color: Colors.white)),
+        content: Text(message, style: const TextStyle(color: Colors.white)),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -107,12 +162,12 @@ class _HousekeepingReportForm extends State<HousekeepingReportForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('REPORT HARIAN HOUSE KEEPING'),
+        title: const Text('REPORT HARIAN HOUSE KEEPING'),
         backgroundColor: Colors.blue.shade700,
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: Column(
@@ -158,14 +213,14 @@ class _HousekeepingReportForm extends State<HousekeepingReportForm> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       "Pelayanan",
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         color: Colors.black,
                       ),
                     ),
-                    SizedBox(height: 6),
+                    const SizedBox(height: 6),
                     TextFormField(
                       controller: _pelayananController,
                       keyboardType: TextInputType.multiline,
@@ -190,24 +245,24 @@ class _HousekeepingReportForm extends State<HousekeepingReportForm> {
               ),
 
               // UPLOAD FOTO
-              Text(
+              const Text(
                 "Dokumentasi (upload minimal 5 foto)",
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   color: Colors.black,
                 ),
               ),
-              SizedBox(height: 6),
+              const SizedBox(height: 6),
               Text(
                 "Upload minimal 5 foto dokumentasi",
                 style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               GridView.builder(
                 shrinkWrap: true,
                 itemCount: 5,
-                physics: NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
                   mainAxisSpacing: 10,
                   crossAxisSpacing: 10,
@@ -221,36 +276,41 @@ class _HousekeepingReportForm extends State<HousekeepingReportForm> {
                         borderRadius: BorderRadius.circular(12),
                         color: Colors.blue.shade50,
                       ),
-                      child:
-                          dokumenWeb[i] != null
-                              ? ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.memory(
-                                  dokumenWeb[i]!,
-                                  fit: BoxFit.cover,
-                                ),
-                              )
-                              : Center(
-                                child: Icon(
-                                  Icons.camera_alt,
-                                  size: 40,
-                                  color: Colors.blue.shade300,
-                                ),
+                      child: dokumenWeb[i] != null || dokumen[i] != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: kIsWeb && dokumenWeb[i] != null
+                                  ? Image.memory(
+                                      dokumenWeb[i]!,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : !kIsWeb && dokumen[i] != null
+                                      ? Image.file(
+                                          dokumen[i]!,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : const SizedBox.shrink(),
+                            )
+                          : Center(
+                              child: Icon(
+                                Icons.camera_alt,
+                                size: 40,
+                                color: Colors.blue.shade300,
                               ),
+                            ),
                     ),
                   );
                 },
               ),
-
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: _submitForm,
+                onPressed: submitReport,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue.shade600,
-                  shape: StadiumBorder(),
-                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: const StadiumBorder(),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: Center(
+                child: const Center(
                   child: Text('Kirim Laporan', style: TextStyle(fontSize: 18)),
                 ),
               ),
@@ -275,9 +335,9 @@ class _HousekeepingReportForm extends State<HousekeepingReportForm> {
         children: [
           Text(
             label,
-            style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
+            style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
           ),
-          SizedBox(height: 6),
+          const SizedBox(height: 6),
           TextFormField(
             controller: controller,
             keyboardType: keyboardType,
@@ -311,11 +371,11 @@ class _HousekeepingReportForm extends State<HousekeepingReportForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             "Tanggal",
             style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
           ),
-          SizedBox(height: 6),
+          const SizedBox(height: 6),
           GestureDetector(
             onTap: _selectDate,
             child: AbsorbPointer(
@@ -323,16 +383,15 @@ class _HousekeepingReportForm extends State<HousekeepingReportForm> {
                 controller: _dateController,
                 decoration: InputDecoration(
                   hintText: 'Pilih Tanggal',
-                  suffixIcon: Icon(Icons.calendar_today),
+                  suffixIcon: const Icon(Icons.calendar_today),
                   fillColor: Colors.blue.shade50,
                   filled: true,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                validator:
-                    (value) =>
-                        value == null || value.isEmpty ? 'Wajib diisi' : null,
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Wajib diisi' : null,
               ),
             ),
           ),
@@ -354,19 +413,18 @@ class _HousekeepingReportForm extends State<HousekeepingReportForm> {
         children: [
           Text(
             label,
-            style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
+            style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
           ),
-          SizedBox(height: 6),
+          const SizedBox(height: 6),
           DropdownButtonFormField<String>(
             value: selected,
             onChanged: onChanged,
             validator: (value) => value == null ? 'Wajib dipilih' : null,
-            items:
-                items
-                    .map(
-                      (val) => DropdownMenuItem(value: val, child: Text(val)),
-                    )
-                    .toList(),
+            items: items
+                .map(
+                  (val) => DropdownMenuItem(value: val, child: Text(val)),
+                )
+                .toList(),
             decoration: InputDecoration(
               fillColor: Colors.blue.shade50,
               filled: true,
