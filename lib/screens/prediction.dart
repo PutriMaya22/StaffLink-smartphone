@@ -139,19 +139,29 @@ final educationMap = {
   3: "Master's & above",
 };
 
-final educationId = int.tryParse(innerData['education'].toString()) ?? 0;
+final educationId = int.tryParse(innerData['education']?.toString() ?? '0') ?? 0;
 final education = educationMap[educationId] ?? '-';
 
 final rating = innerData['previous_year_rating']?.toString() ?? '';
 final skorPelatihan = innerData['avg_training_score']?.toString() ?? '';
-final kpis = (innerData['kpis_met'] == 1 || innerData['kpis_met'] == true) ? 'promoted' : 'not_promoted';
-final penghargaan = (innerData['awards_won'] == 1 || innerData['awards_won'] == true) ? 'Ya' : 'Tidak';
+final kpisMet = innerData['KPIs_met >80%']; // Perbaikan nama key
+final penghargaanWon = innerData['awards_won?']; // Perbaikan nama key
 
-final hasil = prediction == 'promoted' ? 'DI PROMOSI' : 'TIDAK DI PROMOSI';
+// Perbaikan logika untuk menampilkan 'Ya'/'Tidak' berdasarkan nilai boolean atau integer 1/0
+final kpisLolos = (kpisMet == 1 || kpisMet == true);
+final penghargaanLolos = (penghargaanWon == 1 || penghargaanWon == true);
+
+final kpis = kpisLolos ? 'Ya' : 'Tidak';
+final penghargaan = penghargaanLolos ? 'Ya' : 'Tidak';
+
+final hasilPrediksi = prediction == 'promoted';
+final hasil = hasilPrediksi ? 'DI PROMOSI' : 'TIDAK DI PROMOSI';
+final statusPromosiKpi = kpisLolos ? 'Promoted' : 'Not Promoted';
+final statusPenghargaan = penghargaanLolos ? 'Ya' : 'Tidak';
 
 setState(() {
   _result = '''
-Hasil: $hasil
+Hasil Prediksi: $hasil
 
 Detail Input:
 
@@ -159,8 +169,8 @@ Departemen: $department
 Pendidikan: $education
 Rating Tahun Lalu: $rating
 Skor Pelatihan: $skorPelatihan
-KPIs >80%: $kpis
-Penghargaan: $penghargaan
+KPIs >80%: ${statusPromosiKpi}
+Penghargaan: ${statusPenghargaan}
 ''';
 });
 

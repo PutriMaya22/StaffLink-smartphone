@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -10,29 +9,46 @@ import 'package:http/http.dart' as http;
 import 'package:file_picker/file_picker.dart';
 
 class HousekeepingReportForm extends StatefulWidget {
+  const HousekeepingReportForm({super.key});
+
   @override
-  _HousekeepingReportFormState createState() => _HousekeepingReportFormState();
+  _HousekeepingReportForm createState() => _HousekeepingReportForm();
 }
 
-class _HousekeepingReportFormState extends State<HousekeepingReportForm> {
+class _HousekeepingReportForm extends State<HousekeepingReportForm> {
   final _formKey = GlobalKey<FormState>();
 
-  final _emailController = TextEditingController();
-  final _dateController = TextEditingController();
-  final _namaController = TextEditingController();
-  final _departemenController = TextEditingController();
-  final _jamKerjaController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _namaController = TextEditingController();
+  final TextEditingController _jamKerjaController = TextEditingController();
+  final TextEditingController _pelayananController = TextEditingController();
 
+  String? selectedDepartemen;
   String? selectedShift;
-
+  final List<Uint8List?> dokumenWeb = List.filled(5, null);
+  final List<File?> dokumen = List.filled(5, null); // Tambahkan untuk non-web
   final ImagePicker _picker = ImagePicker();
 
-  // Pelayanan dan dokumen
-  final List<String?> pelayanan = List<String?>.filled(10, null, growable: false);
-  final List<File?> dokumen = List<File?>.filled(10, null, growable: false);
-  final List<Uint8List?> dokumenWeb = List<Uint8List?>.filled(10, null, growable: false);
+  final List<String> departemenList = [
+    "Sales & Marketing",
+    "Operations",
+    "Technology",
+    "Analytics",
+    "R&D",
+    "Procurement",
+    "Finance",
+    "HR",
+    "Legal",
+  ];
 
-  Future<void> _selectDate() async {
+  final Map<String, String> shiftToJam = {
+    "Pagi": "08:00 - 16:00",
+    "Siang": "16:00 - 00:00",
+    "Malam": "00:00 - 08:00",
+  };
+
+  void _selectDate() async {
     DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -40,11 +56,22 @@ class _HousekeepingReportFormState extends State<HousekeepingReportForm> {
       lastDate: DateTime(2100),
     );
     if (picked != null) {
+      _dateController.text = DateFormat('yyyy-MM-dd').format(picked);
+    }
+  }
+
+  void _pickImage(int index) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      withData: true,
+    );
+    if (result != null && result.files.single.bytes != null) {
       setState(() {
-        _dateController.text = DateFormat('yyyy-MM-dd').format(picked);
+        dokumenWeb[index] = result.files.single.bytes!;
       });
     }
   }
+
 
   Future<void> _pickImage(int index) async {
     if (kIsWeb) {
@@ -55,6 +82,7 @@ class _HousekeepingReportFormState extends State<HousekeepingReportForm> {
       if (result != null && result.files.single.bytes != null) {
         setState(() {
           dokumenWeb[index] = result.files.single.bytes!;
+          dokumen[index] = null; // Reset file untuk web
         });
       }
     } else {
@@ -62,130 +90,249 @@ class _HousekeepingReportFormState extends State<HousekeepingReportForm> {
       if (image != null) {
         setState(() {
           dokumen[index] = File(image.path);
+          dokumenWeb[index] = null; // Reset bytes untuk non-web
         });
       }
     }
-  }
 
- Future<void> submitReport() async {
-  if (!_formKey.currentState!.validate()) return;
-  _formKey.currentState!.save();
 
-  final url = Uri.parse('http://localhost:8000/api/report');
-  var request = http.MultipartRequest('POST', url);
+  Future<void> submitReport() async {
+    if (!_formKey.currentState!.validate()) return;
+    _formKey.currentState!.save();
 
-  request.fields['email'] = _emailController.text;
-  request.fields['tanggal'] = _dateController.text;
-  request.fields['nama'] = _namaController.text;
-  request.fields['departemen'] = _departemenController.text;
-  request.fields['shift'] = selectedShift ?? '';
-  request.fields['jam_kerja'] = _jamKerjaController.text;
+    final url = Uri.parse('http://localhost:8000/api/report');
+    var request = http.MultipartRequest('POST', url);
 
-  // Kirim 10 pelayanan sebagai field individual
-  for (int i = 0; i < 10; i++) {
-    request.fields['pelayanan_${i + 1}'] = pelayanan[i] ?? '';
-  }
+    request.fields['email'] = _emailController.text;
+    request.fields['tanggal'] = _dateController.text;
+    request.fields['nama'] = _namaController.text;
+    request.fields['departemen'] = selectedDepartemen ?? '';
+    request.fields['shift'] = selectedShift ?? '';
+    request.fields['jam_kerja'] = _jamKerjaController.text;
+    request.fields['pelayanan'] = _pelayananController.text;
 
-  // Kirim dokumentasi (nama + file) sebagai field/file individual
-  for (int i = 0; i < 10; i++) {
-    if (kIsWeb && dokumenWeb[i] != null) {
-      final filename = 'web_photo_${i + 1}.jpg';
-      request.fields['dokumentasi_${i + 1}'] = filename;
-      request.files.add(http.MultipartFile.fromBytes(
-        'dokumen_${i + 1}',
-        dokumenWeb[i]!,
-        filename: filename,
-      ));
-    } else if (!kIsWeb && dokumen[i] != null) {
-      final filename = dokumen[i]!.path.split('/').last;
-      request.fields['dokumentasi_${i + 1}'] = filename;
-      request.files.add(await http.MultipartFile.fromPath(
-        'dokumen_${i + 1}',
-        dokumen[i]!.path,
-      ));
-    } else {
-      // Tetap kirim nama kosong jika tidak ada gambar
-      request.fields['dokumentasi_${i + 1}'] = '';
+    for (int i = 0; i < 5; i++) {
+      if (kIsWeb && dokumenWeb[i] != null) {
+        final filename = 'web_photo_${i + 1}.jpg';
+        request.files.add(http.MultipartFile.fromBytes(
+          'dokumentasi_${i + 1}',
+          dokumenWeb[i]!,
+          filename: filename,
+        ));
+      } else if (!kIsWeb && dokumen[i] != null) {
+        final filename = dokumen[i]!.path.split('/').last;
+        request.files.add(await http.MultipartFile.fromPath(
+          'dokumentasi_${i + 1}',
+          dokumen[i]!.path,
+        ));
+      }
+    }
+
+    try {
+      var response = await request.send();
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _showMessage('Laporan Berhasil Dikirim');
+        _resetForm();
+      } else {
+        String respStr = await response.stream.bytesToString();
+        _showMessage('Gagal: $respStr');
+      }
+    } catch (e) {
+      _showMessage('Error: $e');
     }
   }
-
-  try {
-    var response = await request.send();
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Report berhasil dikirim')));
-      _resetForm();
-    } else {
-      String respStr = await response.stream.bytesToString();
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal: $respStr')));
-    }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-  }
-}
-
-
 
   void _resetForm() {
     _formKey.currentState?.reset();
     _emailController.clear();
     _dateController.clear();
     _namaController.clear();
-    _departemenController.clear();
+>>>>>>> Stashed changes
     _jamKerjaController.clear();
-
+    _pelayananController.clear();
     setState(() {
+      selectedDepartemen = null;
       selectedShift = null;
-      for (int i = 0; i < pelayanan.length; i++) {
-        pelayanan[i] = null;
-        dokumen[i] = null;
+      for (int i = 0; i < dokumenWeb.length; i++) {
         dokumenWeb[i] = null;
+        dokumen[i] = null;
       }
     });
   }
 
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _dateController.dispose();
-    _namaController.dispose();
-    _departemenController.dispose();
-    _jamKerjaController.dispose();
-    super.dispose();
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: Colors.blue.shade600,
+
+        content: Text(message, style: const TextStyle(color: Colors.white)),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Report Harian House Keeping'),
-        backgroundColor: Colors.blue[800],
+
+        title: const Text('REPORT HARIAN HOUSE KEEPING'),
+
+        backgroundColor: Colors.blue.shade700,
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              buildTextField(label: "Email", controller: _emailController, keyboardType: TextInputType.emailAddress),
-              buildDateField(context),
-              buildTextField(label: "Nama", controller: _namaController),
-              buildTextField(label: "Departemen", controller: _departemenController),
-              buildDropdownField(),
-              buildTextField(label: "Jam Kerja", controller: _jamKerjaController),
-              SizedBox(height: 20),
-              buildPelayananSection(),
-              SizedBox(height: 20),
-              buildDokumentasiSection(),
-              SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: submitReport,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue[700],
-                  shape: StadiumBorder(),
-                  padding: EdgeInsets.symmetric(vertical: 16),
+              buildTextField(
+                "Email",
+                _emailController,
+                TextInputType.emailAddress,
+              ),
+              buildDateField(),
+              buildTextField("Nama", _namaController, TextInputType.text),
+              buildDropdownField(
+                "Departemen",
+                departemenList,
+                selectedDepartemen,
+                (val) {
+                  setState(() => selectedDepartemen = val);
+                },
+              ),
+              buildDropdownField(
+                "Shift",
+                shiftToJam.keys.toList(),
+                selectedShift,
+                (val) {
+                  setState(() {
+                    selectedShift = val;
+                    _jamKerjaController.text =
+                        val != null ? shiftToJam[val]! : '';
+                  });
+                },
+              ),
+              buildTextField(
+                "Jam Kerja",
+                _jamKerjaController,
+                TextInputType.text,
+                enabled: false,
+              ),
+
+              // PELAYANAN
+              Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Pelayanan",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: _pelayananController,
+                      keyboardType: TextInputType.multiline,
+                      maxLines: 4,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Wajib diisi';
+                        }
+                        return null;
+                      },
+                      decoration: InputDecoration(
+                        hintText: "Deskripsikan pelayanan hari ini",
+                        filled: true,
+                        fillColor: Colors.blue.shade50,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                child: Center(child: Text('Submit Report', style: TextStyle(fontSize: 18))),
+              ),
+
+              // UPLOAD FOTO
+              const Text(
+                "Dokumentasi (upload minimal 5 foto)",
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                "Upload minimal 5 foto dokumentasi",
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+              ),
+
+              const SizedBox(height: 10),
+              GridView.builder(
+                shrinkWrap: true,
+                itemCount: 5,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  mainAxisSpacing: 10,
+                  crossAxisSpacing: 10,
+                ),
+                itemBuilder: (_, i) {
+                  return InkWell(
+                    onTap: () => _pickImage(i),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.blue.shade300),
+                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.blue.shade50,
+                      ),
+
+                      child: dokumenWeb[i] != null || dokumen[i] != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: kIsWeb && dokumenWeb[i] != null
+                                  ? Image.memory(
+                                      dokumenWeb[i]!,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : !kIsWeb && dokumen[i] != null
+                                      ? Image.file(
+                                          dokumen[i]!,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : const SizedBox.shrink(),
+                            )
+                          : Center(
+                              child: Icon(
+                                Icons.camera_alt,
+                                size: 40,
+                                color: Colors.blue.shade300,
+                              ),
+                            ),
+                    ),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _submitForm,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue.shade600,
+
+                  shape: const StadiumBorder(),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: const Center(
+                  child: Text('Kirim Laporan', style: TextStyle(fontSize: 18)),
+                ),
               ),
             ],
           ),
@@ -194,149 +341,121 @@ class _HousekeepingReportFormState extends State<HousekeepingReportForm> {
     );
   }
 
-  Widget buildTextField({
-    required String label,
-    TextEditingController? controller,
-    TextInputType? keyboardType,
-    String? Function(String?)? validator,
+  Widget buildTextField(
+    String label,
+    TextEditingController controller,
+    TextInputType keyboardType, {
+    int maxLines = 1,
+    bool enabled = true,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: TextStyle(fontWeight: FontWeight.w600)),
-        SizedBox(height: 4),
-        TextFormField(
-          controller: controller,
-          keyboardType: keyboardType,
-          validator: validator ??
-              (value) {
-                if (value == null || value.isEmpty) return 'Wajib diisi';
-                if (label == "Email" && !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                  return 'Format email tidak valid';
-                }
-                return null;
-              },
-          decoration: InputDecoration(
-            hintText: 'Masukkan $label',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
-          ),
-        ),
-        SizedBox(height: 16),
-      ],
-    );
-  }
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
 
-  Widget buildDateField(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text("Tanggal", style: TextStyle(fontWeight: FontWeight.w600)),
-        SizedBox(height: 4),
-        TextFormField(
-          controller: _dateController,
-          readOnly: true,
-          onTap: _selectDate,
-          validator: (value) => (value == null || value.isEmpty) ? 'Pilih tanggal' : null,
-          decoration: InputDecoration(
-            hintText: 'Pilih Tanggal',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
-            suffixIcon: Icon(Icons.calendar_today),
+            style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
           ),
-        ),
-        SizedBox(height: 16),
-      ],
-    );
-  }
-
-  Widget buildDropdownField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text("Shift", style: TextStyle(fontWeight: FontWeight.w600)),
-        SizedBox(height: 4),
-        DropdownButtonFormField<String>(
-          decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0))),
-          hint: Text('Pilih Shift'),
-          value: selectedShift,
-          validator: (value) => value == null ? 'Pilih shift' : null,
-          onChanged: (value) => setState(() => selectedShift = value),
-          items: ['Pagi', 'Siang', 'Malam'].map((shift) => DropdownMenuItem(value: shift, child: Text(shift))).toList(),
-        ),
-        SizedBox(height: 16),
-      ],
-    );
-  }
-
-  Widget buildPelayananSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text("List Pelayanan (10 items)", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-        SizedBox(height: 10),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          itemCount: 10,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 4,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-          ),
-          itemBuilder: (_, i) {
-            return TextFormField(
-              decoration: InputDecoration(
-                hintText: 'Pelayanan ${i + 1}',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+          const SizedBox(height: 6),
+          TextFormField(
+            controller: controller,
+            keyboardType: keyboardType,
+            maxLines: maxLines,
+            enabled: enabled,
+            validator: (value) {
+              if (value == null || value.isEmpty) return 'Wajib diisi';
+              if (label == "Email" &&
+                  !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                return 'Format email tidak valid';
+              }
+              return null;
+            },
+            decoration: InputDecoration(
+              hintText: 'Masukkan $label',
+              fillColor: Colors.blue.shade50,
+              filled: true,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-              validator: (value) => (value == null || value.isEmpty) ? 'Wajib diisi' : null,
-              onSaved: (val) => pelayanan[i] = val,
-            );
-          },
-        ),
-      ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget buildDokumentasiSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text("Dokumentasi (Upload Foto)", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-        SizedBox(height: 10),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          itemCount: 10,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 1.4,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
+  Widget buildDateField() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Tanggal",
+            style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
           ),
-          itemBuilder: (_, i) {
-            final imageWidget = kIsWeb && dokumenWeb[i] != null
-                ? Image.memory(dokumenWeb[i]!, fit: BoxFit.cover)
-                : !kIsWeb && dokumen[i] != null
-                    ? Image.file(dokumen[i]!, fit: BoxFit.cover)
-                    : Center(child: Text('Upload Foto ${i + 1}', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[600])));
-
-            return InkWell(
-              onTap: () => _pickImage(i),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12.0),
-                  border: Border.all(color: Colors.grey),
+          const SizedBox(height: 6),
+          GestureDetector(
+            onTap: _selectDate,
+            child: AbsorbPointer(
+              child: TextFormField(
+                controller: _dateController,
+                decoration: InputDecoration(
+                  hintText: 'Pilih Tanggal',
+                  suffixIcon: const Icon(Icons.calendar_today),
+                  fillColor: Colors.blue.shade50,
+                  filled: true,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12.0),
-                  child: imageWidget,
-                ),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Wajib diisi' : null,
               ),
-            );
-          },
-        ),
-      ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildDropdownField(
+    String label,
+    List<String> items,
+    String? selected,
+    void Function(String?) onChanged,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
+          ),
+          const SizedBox(height: 6),
+          DropdownButtonFormField<String>(
+            value: selected,
+            onChanged: onChanged,
+            validator: (value) => value == null ? 'Wajib dipilih' : null,
+            items: items
+                .map(
+                  (val) => DropdownMenuItem(value: val, child: Text(val)),
+                )
+                .toList(),
+            decoration: InputDecoration(
+              fillColor: Colors.blue.shade50,
+              filled: true,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
