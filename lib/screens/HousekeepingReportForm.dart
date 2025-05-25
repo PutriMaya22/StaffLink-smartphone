@@ -28,6 +28,7 @@ class _HousekeepingReportFormState extends State<HousekeepingReportForm> {
   String? selectedDepartemen;
   String? selectedShift;
   final List<Uint8List?> dokumenWeb = List.filled(5, null);
+  final List<File?> dokumen = List.filled(5, null); // Tambahkan untuk non-web
 
   final List<String> departemenList = [
     "Sales & Marketing",
@@ -84,7 +85,7 @@ class _HousekeepingReportFormState extends State<HousekeepingReportForm> {
     }
   }
 
-  void _submitForm() {
+  Future<void> submitReport() async {
     if (!_formKey.currentState!.validate()) return;
     _formKey.currentState!.save();
 
@@ -134,6 +135,7 @@ class _HousekeepingReportFormState extends State<HousekeepingReportForm> {
     _formKey.currentState?.reset();
     _emailController.clear();
     _dateController.clear();
+    _namaController.clear();
     _jamKerjaController.clear();
     _pelayananController.clear();
     setState(() {
@@ -150,7 +152,7 @@ class _HousekeepingReportFormState extends State<HousekeepingReportForm> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         backgroundColor: Colors.blue.shade600,
-        content: Text(message, style: TextStyle(color: Colors.white)),
+        content: Text(message, style: const TextStyle(color: Colors.white)),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -160,7 +162,7 @@ class _HousekeepingReportFormState extends State<HousekeepingReportForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('REPORT HARIAN HOUSE KEEPING'),
+        title: const Text('REPORT HARIAN HOUSE KEEPING'),
         backgroundColor: Colors.blue.shade700,
         centerTitle: true,
       ),
@@ -218,7 +220,7 @@ class _HousekeepingReportFormState extends State<HousekeepingReportForm> {
                         color: Colors.black,
                       ),
                     ),
-                    SizedBox(height: 6),
+                    const SizedBox(height: 6),
                     TextFormField(
                       controller: _pelayananController,
                       keyboardType: TextInputType.multiline,
@@ -255,7 +257,7 @@ class _HousekeepingReportFormState extends State<HousekeepingReportForm> {
                 "Upload minimal 5 foto dokumentasi",
                 style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               GridView.builder(
                 shrinkWrap: true,
                 itemCount: 5,
@@ -274,34 +276,39 @@ class _HousekeepingReportFormState extends State<HousekeepingReportForm> {
                         borderRadius: BorderRadius.circular(12),
                         color: Colors.blue.shade50,
                       ),
-                      child:
-                          dokumenWeb[i] != null
-                              ? ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.memory(
-                                  dokumenWeb[i]!,
-                                  fit: BoxFit.cover,
-                                ),
-                              )
-                              : Center(
-                                child: Icon(
-                                  Icons.camera_alt,
-                                  size: 40,
-                                  color: Colors.blue.shade300,
-                                ),
+                      child: dokumenWeb[i] != null || dokumen[i] != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: kIsWeb && dokumenWeb[i] != null
+                                  ? Image.memory(
+                                      dokumenWeb[i]!,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : !kIsWeb && dokumen[i] != null
+                                      ? Image.file(
+                                          dokumen[i]!,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : const SizedBox.shrink(),
+                            )
+                          : Center(
+                              child: Icon(
+                                Icons.camera_alt,
+                                size: 40,
+                                color: Colors.blue.shade300,
                               ),
+                            ),
                     ),
                   );
                 },
               ),
-
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: submitReport,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue.shade600,
-                  shape: StadiumBorder(),
-                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: const StadiumBorder(),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 child: const Center(
                   child: Text('Kirim Laporan', style: TextStyle(fontSize: 18)),
@@ -328,7 +335,7 @@ class _HousekeepingReportFormState extends State<HousekeepingReportForm> {
         children: [
           Text(
             label,
-            style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
+            style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
           ),
           const SizedBox(height: 6),
           TextFormField(
