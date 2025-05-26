@@ -17,7 +17,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
+bool _obscurePassword = true; 
   @override
   void dispose() {
     _emailController.dispose();
@@ -114,15 +114,24 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 15),
                 TextField(
                   controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
                     labelText: "Password",
                     hintText: "Password",
-                    border: OutlineInputBorder(),
-                    suffixIcon: Icon(Icons.visibility_off),
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
                   ),
                 ),
-                const SizedBox(height: 10),
+                /* const SizedBox(height: 10),
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
@@ -134,7 +143,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     child: const Text("Forget password?"),
                   ),
-                ),
+                ), */
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: _login,

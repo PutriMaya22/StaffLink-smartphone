@@ -301,97 +301,52 @@ if (userId.isEmpty || namaUser.isEmpty) {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Stack(
-        children: [
-          Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(20),
-                color: const Color(0xFF1A73E8),
-                width: double.infinity,
-                child: Text(
-                  'Hello\n$userName',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 91, 158, 239),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'STAFFLINK',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Jalan JALAN',
-                            style: TextStyle(fontSize: 14, color: Colors.white70),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        _buildButton(Icons.login, 'Masuk', const Color(0xFFB9D9F2)),
-                        _buildButton(Icons.logout, 'Pulang', const Color(0xFFF7B9B9)),
-                        _buildButton(Icons.description, 'Izin', const Color(0xFFB9B9F7)),
-                        _buildButton(Icons.medical_services, 'Sakit', const Color(0xFFF7B9B9)),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE6F3F9),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('Riwayat', style: TextStyle(fontWeight: FontWeight.bold)),
-                              Text('Status', style: TextStyle(fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                          SizedBox(height: 12),
-                          // TODO: Tampilkan data absensi dari API di sini
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          if (_isLoading)
+  return SafeArea(
+    child: Stack(
+      children: [
+        Column(
+          children: [
             Container(
-              color: Colors.black.withOpacity(0.3),
-              child: const Center(child: CircularProgressIndicator()),
+              padding: const EdgeInsets.all(20),
+              color: const Color(0xFF1A73E8),
+              width: double.infinity,
+              child: Text(
+                'Hello\n$userName',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-        ],
-      ),
-    );
-  }
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  Row(
+                    children: [
+                      _buildButton(Icons.login, 'Masuk', const Color(0xFFB9D9F2)),
+                      _buildButton(Icons.logout, 'Pulang', const Color(0xFFF7B9B9)),
+                      _buildButton(Icons.description, 'Izin', const Color(0xFFB9B9F7)),
+                      _buildButton(Icons.medical_services, 'Sakit', const Color(0xFFF7B9B9)),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
+          ],
+        ),
+        if (_isLoading)
+          Container(
+            color: Colors.black.withOpacity(0.3),
+            child: const Center(child: CircularProgressIndicator()),
+          ),
+      ],
+    ),
+  );
+}
+
 
   Widget _buildButton(IconData icon, String label, Color color) {
     return Expanded(
