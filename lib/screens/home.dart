@@ -59,7 +59,10 @@ class _TaskManagerScreenState extends State<TaskManagerScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Form'),
-          BottomNavigationBarItem(icon: Icon(Icons.insights), label: 'Prediksi'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.insights),
+            label: 'Prediksi',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
         selectedItemColor: Colors.blue,
@@ -82,7 +85,6 @@ class _HomeContentState extends State<HomeContent> {
   bool _isLoading = false;
   String namaUser = '';
   String userId = '';
-  
 
   final String baseUrl = 'http://localhost:8000/api';
 
@@ -122,7 +124,7 @@ class _HomeContentState extends State<HomeContent> {
   }
   setState(() => _isLoading = false);
 } */
-Future<bool> login(String username, String password) async {
+  Future<bool> login(String username, String password) async {
     final response = await http.post(
       Uri.parse('$baseUrl/login'),
       headers: {'Content-Type': 'application/json'},
@@ -145,113 +147,116 @@ Future<bool> login(String username, String password) async {
 
   // Cek apakah user sudah absen tipe tertentu hari ini
   Future<bool> checkAbsen({required String tipe}) async {
-  final String userId = SpUtil.getString('user_id') ?? '';
-  if (userId.isEmpty) {
-    print('User ID tidak ditemukan, gagal cek absen.');
-    return false;
-  }
-
-  final tanggal = DateFormat('yyyy-MM-dd').format(DateTime.now());
-  final url = Uri.parse('$baseUrl/absen/check?user_id=$userId&tanggal=$tanggal&tipe=$tipe');
-
-  try {
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      print('Cek absen tipe $tipe: ${data['exists']}');
-      return data['exists'] ?? false;
-    } else {
-      print('Gagal cek absen: ${response.statusCode}');
+    final String userId = SpUtil.getString('user_id') ?? '';
+    if (userId.isEmpty) {
+      print('User ID tidak ditemukan, gagal cek absen.');
       return false;
     }
-  } catch (e) {
-    print('Error cek absen: $e');
-    return false;
-  }
-}
 
-Future<void> handleAbsen(String tipe) async {
-  final String userId = SpUtil.getString('user_id') ?? '';
-final String namaUser = SpUtil.getString('username') ?? '';
+    final tanggal = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final url = Uri.parse(
+      '$baseUrl/absen/check?user_id=$userId&tanggal=$tanggal&tipe=$tipe',
+    );
 
-print('Debug userId: $userId');
-print('Debug namaUser: $namaUser');
+    try {
+      final response = await http.get(url);
 
-if (userId.isEmpty || namaUser.isEmpty) {
-  showMessage('User belum siap, coba lagi nanti');
-  return;
-}
-
-  setState(() => _isLoading = true);
-
-  if (tipe == 'izin' || tipe == 'sakit') {
-    bool sudahAbsenMasuk = await checkAbsen(tipe: 'masuk');
-    bool sudahAbsenPulang = await checkAbsen(tipe: 'pulang');
-
-    if (sudahAbsenMasuk && sudahAbsenPulang) {
-      setState(() => _isLoading = false);
-      showMessage('Tidak bisa absen izin atau sakit setelah absen masuk dan pulang hari ini.');
-      return;
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        print('Cek absen tipe $tipe: ${data['exists']}');
+        return data['exists'] ?? false;
+      } else {
+        print('Gagal cek absen: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      print('Error cek absen: $e');
+      return false;
     }
   }
 
-  bool sudahAbsen = await checkAbsen(tipe: tipe);
-  setState(() => _isLoading = false);
+  Future<void> handleAbsen(String tipe) async {
+    final String userId = SpUtil.getString('user_id') ?? '';
+    final String namaUser = SpUtil.getString('username') ?? '';
 
-  if (sudahAbsen) {
-    showMessage('Anda sudah melakukan absen "$tipe" hari ini');
-    return;
-  }
+    print('Debug userId: $userId');
+    print('Debug namaUser: $namaUser');
 
-  String? keterangan;
-  if (tipe == 'izin' || tipe == 'sakit') {
-    keterangan = await showDialog<String>(
-      context: context,
-      builder: (context) {
-        String temp = '';
-        return AlertDialog(
-          title: Text('Masukkan keterangan $tipe'),
-          content: TextField(
-            onChanged: (value) => temp = value,
-            decoration: const InputDecoration(hintText: 'Keterangan'),
-            autofocus: true,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Batal'),
-            ),
-            TextButton(
-              onPressed: () {
-                if (temp.trim().isEmpty) {
-                  showMessage('Keterangan tidak boleh kosong');
-                  return;
-                }
-                Navigator.pop(context, temp.trim());
-              },
-              child: const Text('Kirim'),
-            ),
-          ],
+    if (userId.isEmpty || namaUser.isEmpty) {
+      showMessage('User belum siap, coba lagi nanti');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    if (tipe == 'izin' || tipe == 'sakit') {
+      bool sudahAbsenMasuk = await checkAbsen(tipe: 'masuk');
+      bool sudahAbsenPulang = await checkAbsen(tipe: 'pulang');
+
+      if (sudahAbsenMasuk && sudahAbsenPulang) {
+        setState(() => _isLoading = false);
+        showMessage(
+          'Tidak bisa absen izin atau sakit setelah absen masuk dan pulang hari ini.',
         );
-      },
+        return;
+      }
+    }
+
+    bool sudahAbsen = await checkAbsen(tipe: tipe);
+    setState(() => _isLoading = false);
+
+    if (sudahAbsen) {
+      showMessage('Anda sudah melakukan absen "$tipe" hari ini');
+      return;
+    }
+
+    String? keterangan;
+    if (tipe == 'izin' || tipe == 'sakit') {
+      keterangan = await showDialog<String>(
+        context: context,
+        builder: (context) {
+          String temp = '';
+          return AlertDialog(
+            title: Text('Masukkan keterangan $tipe'),
+            content: TextField(
+              onChanged: (value) => temp = value,
+              decoration: const InputDecoration(hintText: 'Keterangan'),
+              autofocus: true,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Batal'),
+              ),
+              TextButton(
+                onPressed: () {
+                  if (temp.trim().isEmpty) {
+                    showMessage('Keterangan tidak boleh kosong');
+                    return;
+                  }
+                  Navigator.pop(context, temp.trim());
+                },
+                child: const Text('Kirim'),
+              ),
+            ],
+          );
+        },
+      );
+      if (keterangan == null) return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final success = await postAbsen(
+      userId: userId, // sudah pasti String, bukan nullable
+      nama: namaUser, // sudah pasti String, bukan nullable
+      tipe: tipe,
+      keterangan: keterangan,
     );
-    if (keterangan == null) return;
+
+    showMessage(success ? 'Absen $tipe berhasil' : 'Gagal melakukan absen');
+    setState(() => _isLoading = false);
   }
-
-  setState(() => _isLoading = true);
-
-  final success = await postAbsen(
-    userId: userId,    // sudah pasti String, bukan nullable
-    nama: namaUser,    // sudah pasti String, bukan nullable
-    tipe: tipe,
-    keterangan: keterangan,
-  );
-
-  showMessage(success ? 'Absen $tipe berhasil' : 'Gagal melakukan absen');
-  setState(() => _isLoading = false);
-}
-
 
   // Fungsi untuk post absen ke API
   Future<bool> postAbsen({
@@ -294,7 +299,9 @@ if (userId.isEmpty || namaUser.isEmpty) {
 
   // Fungsi menampilkan snackbar message
   void showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   String? userName = SpUtil.getString("username", defValue: "Putri");
@@ -323,38 +330,54 @@ if (userId.isEmpty || namaUser.isEmpty) {
                 child: ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 91, 158, 239),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'STAFFLINK',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Jalan JALAN',
-                            style: TextStyle(fontSize: 14, color: Colors.white70),
-                          ),
-                        ],
-                      ),
-                    ),
+                    // Container(
+                    //   padding: const EdgeInsets.all(16),
+                    //   decoration: BoxDecoration(
+                    //     color: const Color.fromARGB(255, 91, 158, 239),
+                    //     borderRadius: BorderRadius.circular(12),
+                    //   ),
+                    // child: const Column(
+                    //   crossAxisAlignment: CrossAxisAlignment.start,
+                    //   children: [
+                    //     Text(
+                    //       'STAFFLINK',
+                    //       style: TextStyle(
+                    //         fontSize: 18,
+                    //         fontWeight: FontWeight.bold,
+                    //         color: Colors.white,
+                    //       ),
+                    //     ),
+                    //     SizedBox(height: 4),
+                    //     Text(
+                    //       'Jalan JALAN',
+                    //       style: TextStyle(fontSize: 14, color: Colors.white70),
+                    //     ),
+                    //   ],
+                    // ),
+                    // ),
                     const SizedBox(height: 20),
                     Row(
                       children: [
-                        _buildButton(Icons.login, 'Masuk', const Color(0xFFB9D9F2)),
-                        _buildButton(Icons.logout, 'Pulang', const Color(0xFFF7B9B9)),
-                        _buildButton(Icons.description, 'Izin', const Color(0xFFB9B9F7)),
-                        _buildButton(Icons.medical_services, 'Sakit', const Color(0xFFF7B9B9)),
+                        _buildButton(
+                          Icons.login,
+                          'Masuk',
+                          const Color(0xFFB9D9F2),
+                        ),
+                        _buildButton(
+                          Icons.logout,
+                          'Pulang',
+                          const Color(0xFFF7B9B9),
+                        ),
+                        _buildButton(
+                          Icons.description,
+                          'Izin',
+                          const Color(0xFFB9B9F7),
+                        ),
+                        _buildButton(
+                          Icons.medical_services,
+                          'Sakit',
+                          const Color(0xFFF7B9B9),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -369,8 +392,14 @@ if (userId.isEmpty || namaUser.isEmpty) {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Riwayat', style: TextStyle(fontWeight: FontWeight.bold)),
-                              Text('Status', style: TextStyle(fontWeight: FontWeight.bold)),
+                              Text(
+                                'Riwayat',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                'Status',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
                             ],
                           ),
                           SizedBox(height: 12),
@@ -401,7 +430,9 @@ if (userId.isEmpty || namaUser.isEmpty) {
           style: ElevatedButton.styleFrom(
             backgroundColor: color,
             padding: const EdgeInsets.symmetric(vertical: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             elevation: 1,
           ),
           onPressed: () => handleAbsen(label.toLowerCase()),

@@ -103,17 +103,21 @@ class _HousekeepingReportFormState extends State<HousekeepingReportForm> {
     for (int i = 0; i < 5; i++) {
       if (kIsWeb && dokumenWeb[i] != null) {
         final filename = 'web_photo_${i + 1}.jpg';
-        request.files.add(http.MultipartFile.fromBytes(
-          'dokumentasi_${i + 1}',
-          dokumenWeb[i]!,
-          filename: filename,
-        ));
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'dokumentasi_${i + 1}',
+            dokumenWeb[i]!,
+            filename: filename,
+          ),
+        );
       } else if (!kIsWeb && dokumen[i] != null) {
         final filename = dokumen[i]!.path.split('/').last;
-        request.files.add(await http.MultipartFile.fromPath(
-          'dokumentasi_${i + 1}',
-          dokumen[i]!.path,
-        ));
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'dokumentasi_${i + 1}',
+            dokumen[i]!.path,
+          ),
+        );
       }
     }
 
@@ -162,7 +166,7 @@ class _HousekeepingReportFormState extends State<HousekeepingReportForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('REPORT HARIAN HOUSE KEEPING'),
+        title: const Text('REPORT HARIAN'),
         backgroundColor: Colors.blue.shade700,
         centerTitle: true,
       ),
@@ -276,28 +280,30 @@ class _HousekeepingReportFormState extends State<HousekeepingReportForm> {
                         borderRadius: BorderRadius.circular(12),
                         color: Colors.blue.shade50,
                       ),
-                      child: dokumenWeb[i] != null || dokumen[i] != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: kIsWeb && dokumenWeb[i] != null
-                                  ? Image.memory(
-                                      dokumenWeb[i]!,
-                                      fit: BoxFit.cover,
-                                    )
-                                  : !kIsWeb && dokumen[i] != null
-                                      ? Image.file(
+                      child:
+                          dokumenWeb[i] != null || dokumen[i] != null
+                              ? ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child:
+                                    kIsWeb && dokumenWeb[i] != null
+                                        ? Image.memory(
+                                          dokumenWeb[i]!,
+                                          fit: BoxFit.cover,
+                                        )
+                                        : !kIsWeb && dokumen[i] != null
+                                        ? Image.file(
                                           dokumen[i]!,
                                           fit: BoxFit.cover,
                                         )
-                                      : const SizedBox.shrink(),
-                            )
-                          : Center(
-                              child: Icon(
-                                Icons.camera_alt,
-                                size: 40,
-                                color: Colors.blue.shade300,
+                                        : const SizedBox.shrink(),
+                              )
+                              : Center(
+                                child: Icon(
+                                  Icons.camera_alt,
+                                  size: 40,
+                                  color: Colors.blue.shade300,
+                                ),
                               ),
-                            ),
                     ),
                   );
                 },
@@ -335,7 +341,10 @@ class _HousekeepingReportFormState extends State<HousekeepingReportForm> {
         children: [
           Text(
             label,
-            style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colors.black,
+            ),
           ),
           const SizedBox(height: 6),
           TextFormField(
@@ -390,8 +399,9 @@ class _HousekeepingReportFormState extends State<HousekeepingReportForm> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Wajib diisi' : null,
+                validator:
+                    (value) =>
+                        value == null || value.isEmpty ? 'Wajib diisi' : null,
               ),
             ),
           ),
@@ -413,18 +423,22 @@ class _HousekeepingReportFormState extends State<HousekeepingReportForm> {
         children: [
           Text(
             label,
-            style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colors.black,
+            ),
           ),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
             value: selected,
             onChanged: onChanged,
             validator: (value) => value == null ? 'Wajib dipilih' : null,
-            items: items
-                .map(
-                  (val) => DropdownMenuItem(value: val, child: Text(val)),
-                )
-                .toList(),
+            items:
+                items
+                    .map(
+                      (val) => DropdownMenuItem(value: val, child: Text(val)),
+                    )
+                    .toList(),
             decoration: InputDecoration(
               fillColor: Colors.blue.shade50,
               filled: true,
