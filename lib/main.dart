@@ -1,14 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sp_util/sp_util.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
+
 import 'screens/welcome.dart';
-import 'screens/login.dart'; // Pastikan file ini ada
-import 'screens/home.dart'; // Pastikan file ini ada
+import 'screens/login.dart';
+import 'screens/home.dart';
+
+// Notifier global agar bisa diakses di seluruh widget
+ValueNotifier<bool> isDarkMode = ValueNotifier<bool>(false);
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // WAJIB!
+  WidgetsFlutterBinding.ensureInitialized();
   await SpUtil.getInstance();
-  runApp(MyApp());
+
+  // Ambil dark mode preference
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  bool isDark = prefs.getBool('darkMode') ?? false;
+  isDarkMode.value = isDark;
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -16,27 +26,33 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'StaffLink',
-      debugShowCheckedModeBanner: false,
-      home: FutureBuilder<bool>(
-        future: _checkFirstLaunch(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          }
+    return ValueListenableBuilder<bool>(
+      valueListenable: isDarkMode,
+      builder: (context, isDark, _) {
+        return MaterialApp(
+          title: 'StaffLink',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData.light(),
+          darkTheme: ThemeData.dark(),
+          themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+          home: FutureBuilder<bool>(
+            future: _checkFirstLaunch(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              }
 
-          // If it's first launch
-          if (snapshot.data == true) {
-            return const WelcomeScreen();
-          }
+              if (snapshot.data == true) {
+                return const WelcomeScreen();
+              }
 
-          // If not first launch, check authentication using SpUtil
-          return const AuthChecker();
-        },
-      ),
+              return const AuthChecker();
+            },
+          ),
+        );
+      },
     );
   }
 }
@@ -47,7 +63,7 @@ class AuthChecker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<String?>(
-      future: _getToken(), // Use SpUtil to get the token
+      future: _getToken(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -57,11 +73,9 @@ class AuthChecker extends StatelessWidget {
 
         final token = snapshot.data;
         if (token == null || token.isEmpty) {
-          return const LoginPage(); // Navigate to LoginPage if no token
+          return const LoginPage();
         } else {
-          return const TaskManagerScreen(token: ''); // Navigate to TaskManagerScreen if token exists
-          // Perhatikan: Anda mungkin perlu mengambil data pengguna lain di sini
-          // dan mengirimkannya ke TaskManagerScreen.
+          return const TaskManagerScreen(token: '');
         }
       },
     );

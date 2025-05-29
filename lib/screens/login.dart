@@ -43,18 +43,17 @@ bool _obscurePassword = true;
     );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-        final token = data['token']; // Pastikan respons mengandung key 'token'
+      final token = data['token'];
+      final userId = data['user']['id']?.toString() ?? '';
+      final username = data['user']['name'] ?? '';
 
-        final userId = data['user']['id']?.toString() ?? '';
-        final username = data['user']['name'] ?? '';
-
-        await SpUtil.putString('user_id', userId);
-        await SpUtil.putString('username', username);
-
-        print('Login userId: $userId');
-        print('Login username: $username');
+      await SpUtil.putString('user_id', userId);
+      await SpUtil.putString('username', username);
 
       if (token != null) {
+        // Simpan token ke SpUtil supaya bisa diakses dari layar lain
+        await SpUtil.putString('token', token);
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -78,6 +77,7 @@ bool _obscurePassword = true;
     );
   }
 }
+
 
 
   @override
