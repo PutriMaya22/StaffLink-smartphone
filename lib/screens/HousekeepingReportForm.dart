@@ -6,7 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:typed_data'; // Import untuk Uint8List (web)
 import 'package:file_picker/file_picker.dart';
+import 'dart:convert';
+
 
 class HousekeepingReportForm extends StatefulWidget {
   const HousekeepingReportForm({super.key});
@@ -98,42 +102,62 @@ class _HousekeepingReportFormState extends State<HousekeepingReportForm> {
     request.fields['departemen'] = selectedDepartemen ?? '';
     request.fields['shift'] = selectedShift ?? '';
     request.fields['jam_kerja'] = _jamKerjaController.text;
+    print('Nilai pelayanan yang akan dikirim: ${_pelayananController.text}');
     request.fields['pelayanan'] = _pelayananController.text;
 
-    for (int i = 0; i < 5; i++) {
-      if (kIsWeb && dokumenWeb[i] != null) {
-        final filename = 'web_photo_${i + 1}.jpg';
+     if (kIsWeb) {
+    print('Jumlah dokumen web yang akan dikirim: ${dokumenWeb.where((element) => element != null).length}');
+    for (int i = 0; i < dokumenWeb.length; i++) {
+      if (dokumenWeb[i] != null) {
+        print('Mengirim dokumen web ke-${i + 1}: ${dokumenWeb[i].runtimeType}');
         request.files.add(
           http.MultipartFile.fromBytes(
-            'dokumentasi_${i + 1}',
+            'dokumentasi',
             dokumenWeb[i]!,
-            filename: filename,
+            filename: 'web_photo_${i + 1}.jpg',
           ),
         );
-      } else if (!kIsWeb && dokumen[i] != null) {
-        final filename = dokumen[i]!.path.split('/').last;
+      }
+    }
+  } else {
+    print('Jumlah dokumen non-web yang akan dikirim: ${dokumen.where((element) => element != null).length}');
+    for (int i = 0; i < dokumen.length; i++) {
+      if (dokumen[i] != null) {
+        print('Mengirim dokumen non-web ke-${i + 1}: ${dokumen[i]!.path}');
         request.files.add(
           await http.MultipartFile.fromPath(
-            'dokumentasi_${i + 1}',
+            'dokumentasi',
             dokumen[i]!.path,
+            filename: dokumen[i]!.path.split('/').last,
           ),
         );
       }
     }
-
-    try {
-      var response = await request.send();
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        _showMessage('Laporan Berhasil Dikirim');
-        _resetForm();
-      } else {
-        String respStr = await response.stream.bytesToString();
-        _showMessage('Gagal: $respStr');
-      }
-    } catch (e) {
-      _showMessage('Error: $e');
-    }
   }
+
+  request.headers['Accept'] = 'application/json';
+
+  try {
+    var response = await request.send();
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+    String responseString = await response.stream.bytesToString();
+    print('Full Response: $responseString');
+    var jsonResponse = jsonDecode(responseString);
+    print('Decoded Response: $jsonResponse');
+
+      _showMessage('Laporan Berhasil Dikirim');
+      _resetForm();
+    } else {
+      String respStr = await response.stream.bytesToString();
+      _showMessage('Gagal: $respStr');
+    }
+  } catch (e) {
+    print('Exception saat submit laporan: $e');
+    _showMessage('Error: $e');
+  }
+}
+
 
   void _resetForm() {
     _formKey.currentState?.reset();
