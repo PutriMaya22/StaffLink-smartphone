@@ -44,28 +44,30 @@ class _TaskManagerScreenState extends State<TaskManagerScreen> {
       // Perbaiki pemilihan layar sesuai index
       body: _screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          if (index == 1) {
-            // Navigasi ke form tanpa ubah bottom navigation index
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => HousekeepingReportForm()),
-            );
-          } else {
-            _onItemTapped(index > 1 ? index - 1 : index);
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Form'),
-          BottomNavigationBarItem(icon: Icon(Icons.insights), label: 'Prediksi'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
-        showUnselectedLabels: true,
-      ),
+  currentIndex: _selectedIndex >= 1 ? _selectedIndex + 1 : _selectedIndex,
+  onTap: (index) {
+    if (index == 1) {
+      // Form, buka tanpa ubah tab
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const HousekeepingReportForm()),
+      );
+    } else {
+      // Karena Form tidak di _screens, index > 1 perlu dikurangi 1
+      _onItemTapped(index > 1 ? index - 1 : index);
+    }
+  },
+  items: const [
+    BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+    BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Form'),
+    BottomNavigationBarItem(icon: Icon(Icons.insights), label: 'Prediksi'),
+    BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+  ],
+  selectedItemColor: Colors.blue,
+  unselectedItemColor: Colors.grey,
+  showUnselectedLabels: true,
+),
+
     );
   }
 }

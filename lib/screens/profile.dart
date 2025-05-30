@@ -222,8 +222,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             const SizedBox(height: 30),
-            _buildTile(Icons.person, "Information", context),
-            _buildTile(Icons.lock, "Security", context),
+            _buildTile(
+              Icons.person,
+              "Information",
+              context,
+              onTap: () {
+                // Dialog muncul ketika tile Information diklik
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    final name = SpUtil.getString('username') ?? '-';
+                    final email = SpUtil.getString('email') ?? '-';
+                    return AlertDialog(
+                      title: const Text('Information'),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Nama: $name'),
+                          Text('Email: $email'),
+                        ],
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text('Tutup'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
             _buildTile(
               Icons.dark_mode,
               "Dark Mode",
@@ -278,6 +308,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     IconData icon,
     String label,
     BuildContext context, {
+    VoidCallback? onTap,
     Widget? trailing,
   }) {
     return Card(
@@ -287,7 +318,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         leading: Icon(icon, color: Colors.blue),
         title: Text(label),
         trailing: trailing ?? const Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: () {},
+        onTap: onTap,
       ),
     );
   }
@@ -382,11 +413,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    passwordConfirmController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Profile'), centerTitle: true),
+      appBar: AppBar(title: const Text('Edit Profile')),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20.0),
         child: Form(
           key: _formKey,
           child: ListView(
@@ -394,23 +436,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               TextFormField(
                 controller: nameController,
                 decoration: const InputDecoration(labelText: 'Nama'),
-                validator: (value) => (value == null || value.isEmpty) ? 'Nama tidak boleh kosong' : null,
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Nama tidak boleh kosong' : null,
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: emailController,
                 decoration: const InputDecoration(labelText: 'Email'),
                 validator: (value) {
                   if (value == null || value.isEmpty) return 'Email tidak boleh kosong';
-                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) return 'Email tidak valid';
+                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                    return 'Email tidak valid';
+                  }
                   return null;
                 },
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: passwordController,
-                decoration: const InputDecoration(labelText: 'Password Baru (kosongkan jika tidak diubah)'),
+                decoration: const InputDecoration(labelText: 'Password Baru'),
                 obscureText: true,
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: passwordConfirmController,
                 decoration: const InputDecoration(labelText: 'Konfirmasi Password Baru'),
@@ -422,17 +469,29 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: isLoading ? null : _submit,
                 child: isLoading
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                    ? const CircularProgressIndicator(color: Colors.white)
                     : const Text('Simpan'),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class LoginPage extends StatelessWidget {
+  const LoginPage({super.key});
+  @override
+  Widget build(BuildContext context) {
+    // Isi login page kamu di sini
+    return Scaffold(
+      appBar: AppBar(title: const Text('Login')),
+      body: const Center(child: Text('Halaman Login')),
     );
   }
 }

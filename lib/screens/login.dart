@@ -41,6 +41,8 @@ bool _obscurePassword = true;
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email, 'password': password}),
     );
+  
+
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       final token = data['token'];
@@ -53,6 +55,8 @@ bool _obscurePassword = true;
       if (token != null) {
         // Simpan token ke SpUtil supaya bisa diakses dari layar lain
         await SpUtil.putString('token', token);
+        await SpUtil.putString('username',username);
+        await SpUtil.putString('email', email);
 
         Navigator.pushReplacement(
           context,
