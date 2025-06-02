@@ -17,7 +17,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
+bool _obscurePassword = true; 
   @override
   void dispose() {
     _emailController.dispose();
@@ -41,20 +41,26 @@ class _LoginPageState extends State<LoginPage> {
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email, 'password': password}),
     );
+  
+
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-        final token = data['token']; // Pastikan respons mengandung key 'token'
+      final token = data['token'];
+      final userId = data['user']['id']?.toString() ?? '';
+      final username = data['user']['name'] ?? '';
+      final departemen = data['user']['departemen'] ?? '';
 
-        final userId = data['user']['id']?.toString() ?? '';
-        final username = data['user']['name'] ?? '';
-
-        await SpUtil.putString('user_id', userId);
-        await SpUtil.putString('username', username);
-
-        print('Login userId: $userId');
-        print('Login username: $username');
+      await SpUtil.putString('user_id', userId);
+      await SpUtil.putString('username', username);
+      await SpUtil.putString('departemen', departemen);
 
       if (token != null) {
+        // Simpan token ke SpUtil supaya bisa diakses dari layar lain
+        await SpUtil.putString('token', token);
+        await SpUtil.putString('username',username);
+        await SpUtil.putString('email', email);
+        await SpUtil.putString('departemen', departemen);
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -78,6 +84,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+
 
 
   @override
@@ -114,15 +121,24 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 15),
                 TextField(
                   controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
                     labelText: "Password",
                     hintText: "Password",
-                    border: OutlineInputBorder(),
-                    suffixIcon: Icon(Icons.visibility_off),
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
                   ),
                 ),
-                const SizedBox(height: 10),
+                /* const SizedBox(height: 10),
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
@@ -134,7 +150,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     child: const Text("Forget password?"),
                   ),
-                ),
+                ), */
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: _login,
