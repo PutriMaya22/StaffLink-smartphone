@@ -155,16 +155,14 @@ final kpis = kpisLolos ? 'Ya' : 'Tidak';
 final penghargaan = penghargaanLolos ? 'Ya' : 'Tidak';
 
 final hasilPrediksi = prediction == 'promoted';
-final hasil = hasilPrediksi ? 'DI PROMOSI' : 'TIDAK DI PROMOSI';
-final statusPromosiKpi = kpisLolos ? 'Promoted' : 'Not Promoted';
+final hasil = hasilPrediksi ? 'Promoted' : 'Not Promoted';
+final statusPromosiKpi = kpisLolos ? 'Ya' : 'Tidak';
 final statusPenghargaan = penghargaanLolos ? 'Ya' : 'Tidak';
 
 setState(() {
   _result = '''
-Hasil Prediksi: $hasil
-
+        $hasil
 Detail Input:
-
 Departemen: $department
 Pendidikan: $education
 Rating Tahun Lalu: $rating

@@ -15,37 +15,65 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
 
+  final List<String> _departemenList = [
+    'Sales & Marketing',
+    'Operations',
+    'Technology',
+    'Analytics',
+    'R&D',
+    'Procurement',
+    'Finance',
+    'HR',
+    'Legal',
+  ];
+
+  String? _selectedDepartemen;
+
   Future<void> _signUp() async {
-    // Validasi sederhana
     if (_passwordController.text != _confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Password dan Konfirmasi tidak cocok')),
+        const SnackBar(content: Text('Password dan Konfirmasi tidak cocok')),
       );
       return;
     }
 
-    final response = await http.post(
-      Uri.parse('http://127.0.0.1:8000/api/register'), // Ganti URL jika pakai server live
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: jsonEncode({
-        'name': _nameController.text,
-        'email': _emailController.text,
-        'password': _passwordController.text,
-      }),
-    );
-
-    final data = jsonDecode(response.body);
-    if (response.statusCode == 200) {
+    if (_selectedDepartemen == null || _selectedDepartemen!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Registrasi berhasil")),
+        const SnackBar(content: Text('Silakan pilih departemen')),
       );
-      Navigator.pop(context); // Kembali ke login
-    } else {
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse('http://127.0.0.1:8000/api/register'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({
+          'name': _nameController.text,
+          'email': _emailController.text,
+          'departemen': _selectedDepartemen,
+          'password': _passwordController.text,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Registrasi berhasil")),
+        );
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(data['message'] ?? 'Gagal daftar')),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(data['message'] ?? 'Gagal daftar')),
+        SnackBar(content: Text("Terjadi kesalahan: $e")),
       );
     }
   }
@@ -55,46 +83,66 @@ class _SignUpPageState extends State<SignUpPage> {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: ListView(
             children: [
               Image.asset('assets/logo.png', height: 180),
-              SizedBox(height: 20),
-              Text(
+              const SizedBox(height: 20),
+              const Text(
                 "Sign-up",
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               TextField(
                 controller: _nameController,
-                decoration: InputDecoration(labelText: "Name"),
+                decoration: const InputDecoration(labelText: "Name"),
               ),
               TextField(
                 controller: _emailController,
-                decoration: InputDecoration(labelText: "Email"),
+                decoration: const InputDecoration(labelText: "Email"),
               ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: _selectedDepartemen,
+                decoration: const InputDecoration(
+                  labelText: "Departemen",
+                  border: OutlineInputBorder(),
+                ),
+                items: _departemenList.map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedDepartemen = value!;
+                  });
+                },
+              ),
+              const SizedBox(height: 12),
               TextField(
                 controller: _passwordController,
                 obscureText: true,
-                decoration: InputDecoration(labelText: "Password"),
+                decoration: const InputDecoration(labelText: "Password"),
               ),
               TextField(
                 controller: _confirmPasswordController,
                 obscureText: true,
-                decoration: InputDecoration(labelText: "Konfirmasi Password"),
+                decoration: const InputDecoration(labelText: "Konfirmasi Password"),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _signUp,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF001F3F),
-                  minimumSize: Size(double.infinity, 45),
+                  backgroundColor: const Color(0xFF001F3F),
+                  minimumSize: const Size(double.infinity, 45),
                 ),
-                child: Text("Sign up"),
+                child: const Text("Sign up"),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text("Back to login"),
+                child: const Text("Back to login"),
               ),
             ],
           ),

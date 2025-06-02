@@ -48,15 +48,18 @@ bool _obscurePassword = true;
       final token = data['token'];
       final userId = data['user']['id']?.toString() ?? '';
       final username = data['user']['name'] ?? '';
+      final departemen = data['user']['departemen'] ?? '';
 
       await SpUtil.putString('user_id', userId);
       await SpUtil.putString('username', username);
+      await SpUtil.putString('departemen', departemen);
 
       if (token != null) {
         // Simpan token ke SpUtil supaya bisa diakses dari layar lain
         await SpUtil.putString('token', token);
         await SpUtil.putString('username',username);
         await SpUtil.putString('email', email);
+        await SpUtil.putString('departemen', departemen);
 
         Navigator.pushReplacement(
           context,

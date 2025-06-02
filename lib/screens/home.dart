@@ -86,13 +86,15 @@ class _HomeContentState extends State<HomeContent> {
   bool _isLoading = false;
   List<int> absensiPerBulan = List.filled(6, 0); // Default 6 bulan dengan 0 absensi
   String? userName;
+  String? userDepartemen;
 
   final String baseUrl = 'http://127.0.0.1:8000/api';
 
   @override
   void initState() {
     super.initState();
-    userName = SpUtil.getString("username", defValue: "Putri");
+    userName = SpUtil.getString("username", defValue: "Tidak ada nama");
+    userDepartemen = SpUtil.getString("departemen", defValue: "Tidak ada departemen");
     fetchAbsensiBulanan();
   }
 
@@ -120,7 +122,134 @@ class _HomeContentState extends State<HomeContent> {
     }
   }
 
-  Future<bool> checkAbsen({required String tipe}) async {
+
+  Future<void> handleAbsen(String tipe) async {
+  final String userId = SpUtil.getString('user_id') ?? '';
+  final String namaUser = SpUtil.getString('username') ?? '';
+  final String departemen = SpUtil.getString('departemen') ?? '';
+
+  if (userId.isEmpty || namaUser.isEmpty || departemen.isEmpty) {
+    showMessage('User belum siap, coba lagi nanti');
+    return;
+  }
+
+  setState(() => _isLoading = true);
+
+  if (tipe == 'izin' || tipe == 'sakit') {
+    bool sudahAbsenMasuk = await checkAbsen(tipe: 'masuk');
+    bool sudahAbsenPulang = await checkAbsen(tipe: 'pulang');
+
+    if (sudahAbsenMasuk && sudahAbsenPulang) {
+      setState(() => _isLoading = false);
+      showMessage('Tidak bisa absen izin atau sakit setelah absen masuk dan pulang hari ini.');
+      return;
+    }
+  }
+
+  bool sudahAbsen = await checkAbsen(tipe: tipe);
+  setState(() => _isLoading = false);
+
+  if (sudahAbsen) {
+    showMessage('Anda sudah melakukan absen "$tipe" hari ini');
+    return;
+  }
+
+  String? keterangan;
+  if (tipe == 'izin' || tipe == 'sakit') {
+    keterangan = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        String temp = '';
+        return AlertDialog(
+          title: Text('Masukkan keterangan $tipe'),
+          content: TextField(
+            onChanged: (value) => temp = value,
+            decoration: const InputDecoration(hintText: 'Keterangan'),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Batal'),
+            ),
+            TextButton(
+              onPressed: () {
+                if (temp.trim().isEmpty) {
+                  showMessage('Keterangan tidak boleh kosong');
+                  return;
+                }
+                Navigator.pop(context, temp.trim());
+              },
+              child: const Text('Kirim'),
+            ),
+          ],
+        );
+      },
+    );
+    if (keterangan == null) return;
+  }
+
+  setState(() => _isLoading = true);
+
+  final success = await postAbsen(
+    userId: userId,
+    nama: namaUser,
+    tipe: tipe,
+    keterangan: keterangan,
+    departemen: departemen,  // Kirim departemen juga
+  );
+
+  if(success) {
+    await fetchAbsensiBulanan();
+  }
+
+  showMessage(success ? 'Absen $tipe berhasil' : 'Gagal melakukan absen');
+  setState(() => _isLoading = false);
+}
+
+Future<bool> postAbsen({
+  required String userId,
+  required String nama,
+  required String tipe,
+  String? keterangan,
+  required String departemen,  // parameter departemen ditambahkan
+}) async {
+  final url = Uri.parse('$baseUrl/absen');
+  final waktuSekarang = DateFormat('HH:mm:ss').format(DateTime.now());
+
+  final body = {
+    'user_id': userId,
+    'nama': nama,
+    'departemen': departemen,  // kirim departemen di body
+    'tanggal': DateFormat('yyyy-MM-dd').format(DateTime.now()),
+    'tipe': tipe,
+    if (tipe == 'masuk') 'waktu_masuk': waktuSekarang,
+    if (tipe == 'pulang') 'waktu_keluar': waktuSekarang,
+    if (tipe == 'izin' || tipe == 'sakit') 'keterangan': keterangan,
+  };
+
+  try {
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${widget.token}',
+      },
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode == 201) {
+      return true;
+    } else {
+      print('Gagal absen: ${response.body}');
+      return false;
+    }
+  } catch (e) {
+    print('Error post absen: $e');
+    return false;
+  }
+}
+Future<bool> checkAbsen({required String tipe}) async {
     final String userId = SpUtil.getString('user_id') ?? '';
     if (userId.isEmpty) {
       showMessage('User ID tidak ditemukan.');
@@ -146,129 +275,6 @@ class _HomeContentState extends State<HomeContent> {
     }
   }
 
-  Future<void> handleAbsen(String tipe) async {
-    final String userId = SpUtil.getString('user_id') ?? '';
-    final String namaUser = SpUtil.getString('username') ?? '';
-
-    if (userId.isEmpty || namaUser.isEmpty) {
-      showMessage('User belum siap, coba lagi nanti');
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    if (tipe == 'izin' || tipe == 'sakit') {
-      bool sudahAbsenMasuk = await checkAbsen(tipe: 'masuk');
-      bool sudahAbsenPulang = await checkAbsen(tipe: 'pulang');
-
-      if (sudahAbsenMasuk && sudahAbsenPulang) {
-        setState(() => _isLoading = false);
-        showMessage('Tidak bisa absen izin atau sakit setelah absen masuk dan pulang hari ini.');
-        return;
-      }
-    }
-
-    bool sudahAbsen = await checkAbsen(tipe: tipe);
-    setState(() => _isLoading = false);
-
-    if (sudahAbsen) {
-      showMessage('Anda sudah melakukan absen "$tipe" hari ini');
-      return;
-    }
-
-    String? keterangan;
-    if (tipe == 'izin' || tipe == 'sakit') {
-      keterangan = await showDialog<String>(
-        context: context,
-        builder: (context) {
-          String temp = '';
-          return AlertDialog(
-            title: Text('Masukkan keterangan $tipe'),
-            content: TextField(
-              onChanged: (value) => temp = value,
-              decoration: const InputDecoration(hintText: 'Keterangan'),
-              autofocus: true,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Batal'),
-              ),
-              TextButton(
-                onPressed: () {
-                  if (temp.trim().isEmpty) {
-                    showMessage('Keterangan tidak boleh kosong');
-                    return;
-                  }
-                  Navigator.pop(context, temp.trim());
-                },
-                child: const Text('Kirim'),
-              ),
-            ],
-          );
-        },
-      );
-      if (keterangan == null) return;
-    }
-
-    setState(() => _isLoading = true);
-
-    final success = await postAbsen(
-      userId: userId,
-      nama: namaUser,
-      tipe: tipe,
-      keterangan: keterangan,
-    );
-
-    if(success) {
-      // Refresh grafik absensi jika absen berhasil
-      await fetchAbsensiBulanan();
-    }
-
-    showMessage(success ? 'Absen $tipe berhasil' : 'Gagal melakukan absen');
-    setState(() => _isLoading = false);
-  }
-
-  Future<bool> postAbsen({
-    required String userId,
-    required String nama,
-    required String tipe,
-    String? keterangan,
-  }) async {
-    final url = Uri.parse('$baseUrl/absen');
-    final waktuSekarang = DateFormat('HH:mm:ss').format(DateTime.now());
-
-    final body = {
-      'user_id': userId,
-      'nama': nama,
-      'tanggal': DateFormat('yyyy-MM-dd').format(DateTime.now()),
-      'tipe': tipe,
-      if (tipe == 'masuk') 'waktu_masuk': waktuSekarang,
-      if (tipe == 'pulang') 'waktu_keluar': waktuSekarang,
-      if (tipe == 'izin' || tipe == 'sakit') 'keterangan': keterangan,
-    };
-
-    try {
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${widget.token}',
-        },
-        body: jsonEncode(body),
-      );
-
-      if (response.statusCode == 201) {
-        return true;
-      } else {
-        print('Gagal absen: ${response.body}');
-        return false;
-      }
-    } catch (e) {
-      print('Error post absen: $e');
-      return false;
-    }
-  }
 
   void showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
@@ -373,18 +379,33 @@ class _HomeContentState extends State<HomeContent> {
           Column(
             children: [
               Container(
-                padding: const EdgeInsets.all(20),
-                color: const Color(0xFF1A73E8),
-                width: double.infinity,
-                child: Text(
-                  'Hello\n${userName ?? "User"}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+  padding: const EdgeInsets.all(20),
+  color: const Color(0xFF1A73E8),
+  width: double.infinity,
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        'Hello\n${userName ?? "User"}',
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      const SizedBox(height: 4),
+      Text(
+        userDepartemen ?? '',
+        style: const TextStyle(
+          color: Colors.white70,
+          fontSize: 16,
+          fontWeight: FontWeight.normal,
+        ),
+      ),
+    ],
+  ),
+),
+
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.all(16),

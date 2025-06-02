@@ -93,7 +93,7 @@ class _HousekeepingReportFormState extends State<HousekeepingReportForm> {
     if (!_formKey.currentState!.validate()) return;
     _formKey.currentState!.save();
 
-    final url = Uri.parse('http://localhost:8000/api/report');
+    final url = Uri.parse('http://127.0.0.1:8000/api/report');
     var request = http.MultipartRequest('POST', url);
 
     request.fields['email'] = _emailController.text;
@@ -141,17 +141,18 @@ class _HousekeepingReportFormState extends State<HousekeepingReportForm> {
     var response = await request.send();
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-    String responseString = await response.stream.bytesToString();
-    print('Full Response: $responseString');
-    var jsonResponse = jsonDecode(responseString);
-    print('Decoded Response: $jsonResponse');
+  String responseString = await response.stream.bytesToString();
+  print('Full Response: $responseString');
+  var jsonResponse = jsonDecode(responseString);
+  print('Decoded Response: $jsonResponse');
 
-      _showMessage('Laporan Berhasil Dikirim');
-      _resetForm();
-    } else {
-      String respStr = await response.stream.bytesToString();
-      _showMessage('Gagal: $respStr');
-    }
+  _showMessage('Laporan Berhasil Dikirim');
+  _resetForm();
+} else {
+  String respStr = await response.stream.bytesToString();
+  print('Error Response: $respStr'); // ← tambahkan ini untuk bantu debug
+  _showMessage('Gagal: $respStr');
+}
   } catch (e) {
     print('Exception saat submit laporan: $e');
     _showMessage('Error: $e');

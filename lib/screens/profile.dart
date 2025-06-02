@@ -117,7 +117,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        leading: const BackButton(),
         title: const Text("Profile"),
         centerTitle: true,
       ),
@@ -233,6 +232,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   builder: (context) {
                     final name = SpUtil.getString('username') ?? '-';
                     final email = SpUtil.getString('email') ?? '-';
+                    final departemen = SpUtil.getString('departemen') ?? '-';
                     return AlertDialog(
                       title: const Text('Information'),
                       content: Column(
@@ -241,6 +241,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         children: [
                           Text('Nama: $name'),
                           Text('Email: $email'),
+                          Text('Departemen: $departemen'),
                         ],
                       ),
                       actions: [
@@ -484,14 +485,3 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 }
 
-class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
-  @override
-  Widget build(BuildContext context) {
-    // Isi login page kamu di sini
-    return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
-      body: const Center(child: Text('Halaman Login')),
-    );
-  }
-}
